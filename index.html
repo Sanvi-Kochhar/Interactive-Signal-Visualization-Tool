@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Mini MATLAB Signal Lab</title>
+
+<style>
+body {
+    background:#1e1e1e;
+    color:white;
+    font-family:Consolas;
+    text-align:center;
+}
+
+.signalBox {
+    background:#2b2b2b;
+    margin:10px;
+    padding:10px;
+    border-radius:8px;
+}
+
+.container {
+    display:flex;
+    justify-content:space-around;
+}
+
+canvas {
+    background:black;
+    border:1px solid gray;
+}
+
+input, select, button {
+    margin:5px;
+    padding:5px;
+}
+</style>
+
+</head>
+
+<body>
+
+<h2>Mini MATLAB Signal Lab</h2>
+
+<div id="signals"></div>
+
+<button onclick="addSignal()">➕ Add Signal</button>
+<button onclick="plotSignals()">Plot All</button>
+
+<hr>
+
+<h3>Convolution</h3>
+
+Signal A:
+<select id="convA"></select>
+
+Signal B:
+<select id="convB"></select>
+
+<button onclick="doConvolution()">Run Convolution</button>
+
+<br><br>
+
+<div class="container">
+
+<div>
+<h3>Input Signals</h3>
+<canvas id="inputCanvas" width="400" height="250"></canvas>
+</div>
+
+<div>
+<h3>Output Signal</h3>
+<canvas id="outputCanvas" width="400" height="250"></canvas>
+</div>
+
+</div>
+
+<script>
+
+let signalCount = 0;
+
+// ===== ADD SIGNAL =====
+function addSignal() {
+
+    signalCount++;
+
+    let div = document.createElement("div");
+    div.className = "signalBox";
+    div.id = "sig" + signalCount;
+
+    div.innerHTML = `
+    <b>Signal ${signalCount}</b><br>
+
+    <select id="wave${signalCount}">
+        <option value="sine">Sine</option>
+        <option value="square">Square</option>
+        <option value="triangle">Triangle</option>
+        <option value="step">Step</option>
+        <option value="impulse">Impulse</option>
+    </select>
+
+    <br>
+
+    Amp <input id="amp${signalCount}" type="number" value="1">
+    Freq <input id="freq${signalCount}" type="number" value="2">
+    Phase <input id="phase${signalCount}" type="number" value="0">
+
+    <button onclick="removeSignal(${signalCount})">❌ Remove</button>
+    `;
+
+    document.getElementById("signals").appendChild(div);
+
+    updateSelectors();
+}
+
+// ===== REMOVE SIGNAL =====
+function removeSignal(id) {
+    let el = document.getElementById("sig" + id);
+    if (el) el.remove();
+    updateSelectors();
+}
+
+// ===== UPDATE DROPDOWN =====
+function updateSelectors() {
+
+    let convA = document.getElementById("convA");
+    let convB = document.getElementById("convB");
+
+    convA.innerHTML = "";
+    convB.innerHTML = "";
+
+    for (let i = 1; i <= signalCount; i++) {
+        if (document.getElementById("sig" + i)) {
+            convA.innerHTML += `<option value="${i}">Signal ${i}</option>`;
+            convB.innerHTML += `<option value="${i}">Signal ${i}</option>`;
+        }
+    }
+}
+
+// ===== SIGNAL FUNCTION =====
+function signal(t, type, A, f, p) {
+
+    if(type === "sine") return A*Math.sin(f*t + p);
+    if(type === "square") return A*Math.sign(Math.sin(f*t));
+    if(type === "triangle") return A*(2/Math.PI)*Math.asin(Math.sin(f*t));
+    if(type === "step") return t>=0?A:0;
+    if(type === "impulse") return Math.abs(t)<0.05?A*10:0;
+
+    return 0;
+}
+
+// ===== PLOT INPUT =====
+function plotSignals() {
+
+    let ctx = inputCanvas.getContext("2d");
+    ctx.clearRect(0,0,400,250);
+
+    for (let i = 1; i <= signalCount; i++) {
+
+        if (!document.getElementById("sig" + i)) continue;
+
+        let A = +document.getElementById("amp" + i).value;
+        let f = +document.getElementById("freq" + i).value;
+        let p = +document.getElementById("phase" + i).value;
+        let type = document.getElementById("wave" + i).value;
+
+        ctx.beginPath();
+
+        for (let x = 0; x < 400; x++) {
+            let t = x * 0.02;
+            let y = signal(t, type, A, f, p);
+            ctx.lineTo(x, 125 - y * 20);
+        }
+
+        ctx.strokeStyle = `hsl(${Math.random()*360},100%,60%)`;
+        ctx.stroke();
+    }
+}
+
+// ===== CONVOLUTION =====
+function doConvolution() {
+
+    let id1 = convA.value;
+    let id2 = convB.value;
+
+    let x=[],h=[],y=[];
+
+    let A1 = +document.getElementById("amp" + id1).value;
+    let f1 = +document.getElementById("freq" + id1).value;
+    let p1 = +document.getElementById("phase" + id1).value;
+    let t1 = document.getElementById("wave" + id1).value;
+
+    let A2 = +document.getElementById("amp" + id2).value;
+    let f2 = +document.getElementById("freq" + id2).value;
+    let p2 = +document.getElementById("phase" + id2).value;
+    let t2 = document.getElementById("wave" + id2).value;
+
+    for (let i = 0; i < 200; i++) {
+        let t = i * 0.05;
+        x[i] = signal(t, t1, A1, f1, p1);
+        h[i] = signal(t, t2, A2, f2, p2);
+    }
+
+    for (let n = 0; n < 200; n++) {
+        y[n] = 0;
+        for (let k = 0; k < n; k++) {
+            y[n] += x[k] * h[n - k];
+        }
+    }
+
+    let ctx = outputCanvas.getContext("2d");
+    ctx.clearRect(0,0,400,250);
+
+    ctx.beginPath();
+
+    for (let i = 0; i < y.length; i++) {
+        ctx.lineTo(i*2,125-y[i]*10);
+    }
+
+    ctx.strokeStyle="red";
+    ctx.stroke();
+}
+
+
+// ===== INIT =====
+addSignal();
+
+</script>
+
+</body>
+</html>

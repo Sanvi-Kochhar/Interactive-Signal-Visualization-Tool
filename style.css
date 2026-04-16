@@ -1,0 +1,60 @@
+/* ===== GLOBAL ===== */
+body {
+    background: #1e1e1e;
+    color: #eaeaea;
+    font-family: Consolas, monospace;
+    margin: 0;
+}
+
+/* HEADER */
+h2 {
+    background: #252526;
+    padding: 15px;
+    margin: 0;
+    color: #00d4ff;
+}
+
+/* SIGNAL BOX */
+.signalBox {
+    background: #2d2d30;
+    margin: 10px;
+    padding: 10px;
+    border-radius: 6px;
+}
+
+/* BUTTONS */
+button {
+    background: #007acc;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    margin: 5px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #005f99;
+}
+
+/* INPUTS */
+input, select {
+    background: #3c3c3c;
+    color: white;
+    border: 1px solid #555;
+    padding: 4px;
+    border-radius: 4px;
+}
+
+/* LAYOUT */
+.container {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 10px;
+}
+
+/* CANVAS */
+canvas {
+    background: #111;
+    border: 1px solid #555;
+}
